@@ -29,7 +29,13 @@ var WorldScene = new Phaser.Class({
 	{
 		Phaser.Scene.call(this, { key: 'WorldScene' });
 	},
+
 	preload: function ()
+	{
+
+	},
+
+	create: function ()
 	{
 		// Create world
 	}
