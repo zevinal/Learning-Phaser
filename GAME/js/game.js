@@ -1,7 +1,7 @@
 var BootScene = new Phaser.Class({
 	Extends: Phaser.Scene,
 
-	initialise:
+	initialize:
 
 	function BootScene ()
 	{
@@ -11,6 +11,12 @@ var BootScene = new Phaser.Class({
 	preload: function ()
 	{
 		// Load resources
+		
+		// Map Tiles
+		this.load.image('tiles', 'assets/map/spritesheet.png');
+
+		// JSON map
+		this.load.tilemapTiledJSON('map', 'assets/map/map.json');
 	},
 
 	create: function ()
@@ -23,7 +29,7 @@ var WorldScene = new Phaser.Class({
 
 	Extends: Phaser.Scene,
 
-	initialise:
+	initialize:
 
 	function WorldScene ()
 	{
@@ -38,6 +44,13 @@ var WorldScene = new Phaser.Class({
 	create: function ()
 	{
 		// Create world
+		var map = this.make.tilemap({ key: 'map' });
+		
+		var tiles = map.addTilesetImage('spritesheet', 'tiles');
+
+		var grass = map.createStaticLayer('Grass', tiles, 0, 0);
+        var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
+        obstacles.setCollisionByExclusion([-1]);
 	}
 });
 
@@ -54,9 +67,9 @@ var config = {
 			gravity: { y: 0 }
 		}
 	},
-	scene: {
+	scene: [
 		BootScene,
 		WorldScene
-	}
+	]
 };
 var game = new Phaser.Game(config);
