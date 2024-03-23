@@ -1,49 +1,56 @@
-// Create a new scene
-let gameScene = new Phaser.Scene('Game');
+var BootScene = new Phaser.Class({
+	Extends: Phaser.Scene,
 
-// Load assets
-gameScene.preload = function(){
-    //Load images
-    this.load.image('background', 'assets/background.png');
-    this.load.image('player', 'assets/player.png');
-    this.load.image('dragon', 'assets/dragon.png');
-    this.load.image('loot', 'assets/treasure.png');
-}
+	initialise:
 
-// Create assets
-gameScene.create = function(){
-    // Create background sprite
-    let background = this.add.sprite(320, 180, 'background');
+	function BootScene ()
+	{
+		Phaser.Scene.call(this, { key: 'BootScene' });
+	},
 
-    // Create PC sprite
-    let player = this.add.sprite(320, 180, 'player');
+	preload: function ()
+	{
+		// Load resources
+	},
 
-    // Creating enemies
-    let enemy1 = this.add.sprite(150, 220, 'dragon');
-    let enemy2 = this.add.sprite(490, 220, 'dragon');
-    enemy2.flipX = true;
+	create: function ()
+	{
+		this.scene.start('WorldScene');
+	}
+});
 
-    // Creating the loot
-    let loot1 = this.add.sprite(130, 250, 'loot');
-    let loot2 = this.add.sprite(510, 250, 'loot');
-    loot2.flipX = true;
-    loot1.scale = 0.5;
-    loot2.scale = 0.5;
-    loot1.angle = -20;
-    loot2.angle = 20;
+var WorldScene = new Phaser.Class({
 
-    // Organising depths
-    background.depth = -9999;
-    player.depth = 9999;
-}
+	Extends: Phaser.Scene,
 
-// Set config
-let config = {
-    type: Phaser.AUTO, // This setting will auto-detect if the browser is capable of suppporting WebGL. If it is, it will use the WebGL Renderer. If not, it will fall back to the Canvas Renderer.
-    width: 640,
-    height: 360,
-    scene: gameScene
+	initialise:
+
+	function WorldScene ()
+	{
+		Phaser.Scene.call(this, { key: 'WorldScene' });
+	},
+	preload: function ()
+	{
+		// Create world
+	}
+});
+
+var config = {
+	type: Phaser.AUTO,
+	parent: 'content',
+	width: 320,
+	height: 240,
+	zoom: 2,
+	pixelArt: true,
+	physics: {
+		default: 'arcade',
+		arcade: {
+			gravity: { y: 0 }
+		}
+	},
+	scene: {
+		BootScene,
+		WorldScene
+	}
 };
-
-// Create new game
-let game = new Phaser.Game(config);
+var game = new Phaser.Game(config);
