@@ -17,6 +17,9 @@ var BootScene = new Phaser.Class({
 
 		// JSON map
 		this.load.tilemapTiledJSON('map', 'assets/map/map.json');
+
+		// Characters
+		this.load.spritesheet('player', 'assets/RPG_assets.png', { frameWidth: 16, frameHeight: 16 });
 	},
 
 	create: function ()
@@ -51,6 +54,47 @@ var WorldScene = new Phaser.Class({
 		var grass = map.createStaticLayer('Grass', tiles, 0, 0);
         var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
         obstacles.setCollisionByExclusion([-1]);
+
+		// Create player character
+		this.player = this.physics.add.sprite(50, 100, 'player', 6)
+
+		// Apply physics boundaries
+		this.physics.world.bounds.width = map.widthInPixels;
+        this.physics.world.bounds.height = map.heightInPixels;
+        this.player.setCollideWorldBounds(true);
+
+		// Process user input
+		this.cursors = this.input.keyboard.createCursorKeys();
+
+		// Camera follow
+		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+		this.cameras.main.startFollow(this.player);
+		this.cameras.main.roundPixels = true;
+	},
+
+	update: function (time, delta)
+	{
+		this.player.body.setVelocity(0);
+
+		//  Horizontal movement
+		if (this.cursors.left.isDown)
+		{
+			this.player.body.setVelocityX(-80);
+		}
+		else if (this.cursors.right.isDown)
+		{
+			this.player.body.setVelocityX(80);
+		}
+
+		// Vertical movement
+		if (this.cursors.up.isDown)
+		{
+			this.player.body.setVelocityY(-80);
+		}
+		else if (this.cursors.down.isDown)
+		{
+			this.player.body.setVelocityY(80);
+		}
 	}
 });
 
