@@ -35,6 +35,7 @@ var PlayerCharacter = new Phaser.Class({
 		this.setScale(2);
 	}
 });
+// Menu selector
 var MenuItem = new Phaser.Class({
 	Extends: Phaser.GameObjects.Text,
 
@@ -53,6 +54,93 @@ var MenuItem = new Phaser.Class({
 	}
 	
 });
+// Menu creation
+var Menu = new Phaser.Class({
+	Extends: Phaser.GameObjects.Container,
+
+	initialize:
+
+	function Menu(x, y, scene, heroes) {
+		Phaser.GameObjects.Container.call(this, scene, x, y);
+		this.menuItems = [];
+		this.menuItemIndex = 0;
+		this.heroes = heroes;
+		this.x = x;
+		this.y = y;
+	},
+	addMenuItem: function(unit) {
+		var menuItem = new MenuItem(0, this.menuItems.length * 20, unit, this.scene);
+		this.menuItems.push(menuItem);
+		this.add(menuItem);
+	},
+	moveSelectionUp: function() {
+		this.menuItems[this.menuItemIndex].deselect();
+		this.menuItemIndex--;
+		if(this.menuItem < 0)
+		this.menuItemIndex = this.menuItems.length - 1;
+	this.menuItems[this.menuItemIndex].select();
+	},
+	moveSelectionDown: function() {
+		this.menuItems[this.menuItemIndex].deselect();
+		this.menuItemIndex++;
+		if(this.menuItemIndex >= this.menuItems.length)
+		this.menuItemIndex = 0;
+	this.menuItems[this.menuItemIndex].select();
+	},
+	// Select a menu
+	select: function(index) {
+		if(!index)
+		index = 0;
+	this.menuItems[this.menuItemIndex].deselect();
+	this.menuItemIndex = index;
+	this.menuItems[this.menuItemIndex].select();
+	},
+	// Deselect the menu
+	deselect: function() {
+		this.menuItems[this.menuItemIndex].deselect();
+		this.menuItemIndex = 0;
+	},
+	confirm: function() {
+		// Menu select confirmation
+	}
+})
+// Menu for the player character
+var HeroesMenu = new Phaser.Class({
+	Extends: Menu,
+
+	initialize:
+
+	function HeroesMenu(x, y, scene) {
+		Menu.call(this, x, y, scene);
+	}
+});
+// Menu for actions
+var ActionsMenu = new Phaser.Class({
+	Extends: Menu,
+
+	initialize:
+
+	function ActionsMenu(x, y, scene) {
+		Menu.call(this, x, y, scene);
+		this.addMenuItem('Attack');
+	},
+	confirm: function() {
+		// Action select confirmation
+	}
+});
+// Menu for enemy selection
+var EnemiesMenu = new Phaser.Class({
+	Extends: Menu,
+
+	initialize:
+
+	function EnemiesMenu(x, y, scene) {
+		Menu.call(this, x, y, scene);
+	},
+	confirm: function() {
+		// Enemy select confirmation
+	}
+})
 var BootScene = new Phaser.Class({
     Extends: Phaser.Scene,
     initialize:
@@ -62,7 +150,7 @@ var BootScene = new Phaser.Class({
     },
     preload: function ()
     {
-        // load resources
+        // Load resources
         this.load.spritesheet('player', 'assets/RPG_assets.png', { frameWidth: 16, frameHeight: 16 });
         this.load.image('dragonblue', 'assets/dragonblue.png');
         this.load.image('dragonorange', 'assets/dragonorange.png');
@@ -129,6 +217,17 @@ var UIScene = new Phaser.Class({
 		this.graphics.fillRect(95, 150, 90, 100);
 		this.graphics.strokeRect(188, 150, 130, 100);
 		this.graphics.fillRect(188, 150, 130, 100);
+		// Menu container
+		this.menus = this.add.container();
+		this.heroesMenu = new HeroesMenu(195, 153, this);
+		this.actionsMenu = new ActionsMenu(100, 153, this);
+		this.enemiesMenu = new EnemiesMenu(8, 153, this);
+		// Currently selected menu
+		this.currentMenu = this.actionsMenu;
+		// Populate container
+		this.menus.add(this.heroesMenu);
+		this.menus.add(this.actionsMenu);
+		this.menus.add(this.enemiesMenu);
     }
 });
 var config = {
