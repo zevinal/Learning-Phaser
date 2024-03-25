@@ -102,6 +102,22 @@ var Menu = new Phaser.Class({
 	},
 	confirm: function() {
 		// Menu select confirmation
+	},
+	// Function to clear all the menu items
+	clear: function() {
+		for(var i = 0; i < this.menuItems.length; i++) {
+			this.menuItems[i].destroy();
+		}
+		this.menuItems.length = 0;
+		this.menuItemIndex = 0;
+	},
+	// Function to add menu items
+	remap: function(units) {
+		this.clear();
+		for(var i = 0; i < units.length; i++) {
+			var unit = units[i];
+			this.addMenuItem(unit.type);
+		}
 	}
 })
 // Menu for the player character
@@ -126,6 +142,7 @@ var ActionsMenu = new Phaser.Class({
 	},
 	confirm: function() {
 		// Action select confirmation
+		this.scene.events.emit('SelectEnemies');
 	}
 });
 // Menu for enemy selection
@@ -139,6 +156,7 @@ var EnemiesMenu = new Phaser.Class({
 	},
 	confirm: function() {
 		// Enemy select confirmation
+		this.scene.events.emit('Enemy', this.menuItemIndex);
 	}
 })
 var BootScene = new Phaser.Class({
@@ -195,9 +213,39 @@ var BattleScene = new Phaser.Class({
 		this.units = this.heroes.concat(this.enemies);
 
 		// Run UI Scene at the same time
-		
 		this.scene.launch('UIScene');
-    }
+
+		// Turn order
+		this.index = -1;
+    },
+	// Function for turn order
+	nextTurn: function() {
+		this.index++;
+		// Cycle back to the top of turn orde
+		if(this.index >= this.units.length) {
+			this.index = 0;
+		}
+		if(this.units[this.index]) {
+			// If it's the players turn
+			if(this.units[this.index] instanceof PlayerCharacter) {
+				this.events.emit('PlayerSelect', this.index);
+			} else {
+				// If it's the enemies turn, attack a random hero
+				var r = Math.floor(Math.random() * this.heroes.length);
+				// Call the enemy attack function
+				this.units[this.index].attack(this.heroes[r]);
+				// Add turn timer
+				this.time.addEvent({ delay: 3000, callback: this.nextTurn, callbackScope: this });
+			}
+		}
+	},
+	// Add player input
+	receivePlayerSelection: function(action, target) {
+		if(action == 'attack') {
+			this.units[this.index].attack(this.enemies[target]);
+		}
+		this.time.addEvent({ delay: 3000, callback: this.nextTurn, callbackScope: this });
+	},
 });
 var UIScene = new Phaser.Class({
     Extends: Phaser.Scene,
@@ -228,7 +276,64 @@ var UIScene = new Phaser.Class({
 		this.menus.add(this.heroesMenu);
 		this.menus.add(this.actionsMenu);
 		this.menus.add(this.enemiesMenu);
-    }
+		// Access the Battle Scene
+		this.battleScene = this.scene.get('BattleScene');
+		this.remapHeroes();
+		this.remapEnemies();
+		// Add user input to the menus
+		this.input.keyboard.on('keydown', this.onKeyInput, this);
+		// Listen for player's turn
+		this.battleScene.events.on('PlayerSelect', this.onPlayerSelect, this);
+		// Confirm enemy selection
+		this.events.on('SelectEnemies', this.onSelectEnemies, this);
+		this.events.on('Enemy', this.onEnemy, this);
+		// Load the first turn
+		this.battleScene.nextTurn();
+    },
+	// Functions to populate the heroes and enemy menus
+	remapHeroes: function() {
+		var heroes = this.battleScene.heroes;
+		this.heroesMenu.remap(heroes);
+	},
+	remapEnemies: function() {
+		var enemies = this.battleScene.enemies;
+		this.enemiesMenu.remap(enemies);
+	},
+	// Function for keyboard inputs
+	onKeyInput: function(event) {
+		if(this.currentMenu) {
+			if(event.code === 'ArrowUp') {
+				this.currentMenu.moveSelectionUp();
+			} else if(event.code === 'ArrowDown') {
+				this.currentMenu.moveSelectionDown();
+			} else if(event.code === 'ArrowRight' || event.code === 'Shift') {
+
+			} else if(event.code === 'Space' || event.code === 'ArrowLeft') {
+				this.currentMenu.confirm();
+			}
+		}
+	},
+	// Player select function
+	onPlayerSelect: function(id) {
+		this.heroesMenu.select(id);
+		this.actionsMenu.select(0);
+		this.currentMenu = this.actionsMenu;
+	},
+	// Function to select enemies
+	onSelectEnemies: function() {
+		// Activate enemies menu
+		this.currentMenu = this.enemiesMenu;
+		// Select the first enemy
+		this.enemiesMenu.select(0);
+	},
+	// Send attack data to battle scene
+	onEnemy: function(index) {
+		this.heroesMenu.deselect();
+		this.actionsMenu.deselect();
+		this.enemiesMenu.deselect();
+		this.currentMenu = null;
+		this.battleScene.receivePlayerSelection('attack', index);
+	},
 });
 var config = {
     type: Phaser.AUTO,
