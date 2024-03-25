@@ -62,6 +62,7 @@ var WorldScene = new Phaser.Class({
 		this.physics.world.bounds.width = map.widthInPixels;
         this.physics.world.bounds.height = map.heightInPixels;
         this.player.setCollideWorldBounds(true);
+		this.physics.add.collider(this.player, obstacles);
 
 		// Process user input
 		this.cursors = this.input.keyboard.createCursorKeys();
@@ -99,6 +100,19 @@ var WorldScene = new Phaser.Class({
 			frameRate: 10,
 			repeat: -1
 		});
+
+		// // Enemy battle zones
+		this.spawns = this.physics.add.group({ classType: Phaser.GameObjects.Zone });
+		for(var i = 0; i < 30; i++) {
+			var x = Phaser.Math.RND.between(0, this.physics.world.bounds.width);
+            var y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
+			
+		// 	// Parameters x, y, width, height
+			this.spawns.create(x, y, 20, 20);
+		}
+
+		// // If the player character enters a battle zone, a battle will initiate
+		this.physics.add.overlap(this.player, this.spawns, this.onMeetEnemy, false, this);
 	},
 
 	update: function (time, delta)
@@ -133,6 +147,15 @@ var WorldScene = new Phaser.Class({
 		else {
 			this.player.anims.stop();
 		}
+	},
+
+	onMeetEnemy: function(player, zone) {
+		// Move the zone to another randomised location
+		zone.x = Phaser.Math.RND.between(0, this.physics.worlds.bounds.width);
+		zone.y = Phaser.Math.RND.between(0, this.physics.worlds.bounds.height);
+
+		// Start the battle
+		this.cameras.main.shake(300);
 	}
 });
 
@@ -146,7 +169,8 @@ var config = {
 	physics: {
 		default: 'arcade',
 		arcade: {
-			gravity: { y: 0 }
+			gravity: { y: 0 },
+			debug: true
 		}
 	},
 	scene: [
