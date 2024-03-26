@@ -20,6 +20,10 @@ var BootScene = new Phaser.Class({
 
 		// Characters
 		this.load.spritesheet('player', 'assets/RPG_assets.png', { frameWidth: 16, frameHeight: 16 });
+
+		// Enemies
+		this.load.image('dragonblue', 'assets/dragonblue.png');
+        this.load.image('dragonorange', 'assets/dragonorange.png');
 	},
 
 	create: function ()
@@ -44,6 +48,18 @@ var BattleScene = new Phaser.Class({
 		this.cameras.main.setBackgroundColor('rgba(0, 200, 0, 0.5)');
 		// Run the UI scene
 		this.scene.run('UIScene');
+		var timeEvent = this.time.addEvent({delay: 2000, callback: this.exitBattle, callbackScope: this});
+		this.sys.events.on('wake', this.wake, this);
+	},
+	exitBattle: function ()
+	{
+		this.scene.sleep('UIScene');
+		this.scene.switch('WorldScene');
+	},
+	wake: function ()
+	{
+		this.scene.run('UIScene');
+		this.time.addEvent({delay: 2000, callback: this.exitBattle, callbackScope: this});
 	}
 });
 
