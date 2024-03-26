@@ -28,6 +28,49 @@ var BootScene = new Phaser.Class({
 	}
 });
 
+var BattleScene = new Phaser.Class({
+
+	Extends: Phaser.Scene,
+
+	initialize:
+
+	function BattleScene ()
+	{
+		Phaser.Scene.call(this, { key: 'BattleScene' });
+	},
+	create: function ()
+	{
+		// Set the scene background
+		this.cameras.main.setBackgroundColor('rgba(0, 200, 0, 0.5)');
+		// Run the UI scene
+		this.scene.run('UIScene');
+	}
+});
+
+var UIScene = new Phaser.Class({
+
+	Extends: Phaser.Scene,
+
+	initialize:
+
+	function UIScene ()
+	{
+		Phaser.Scene.call(this, { key: 'UIScene' });
+	},
+	create: function ()
+	{
+		this.graphics = this.add.graphics();
+		this.graphics.lineStyle(1, 0xffffff);
+		this.graphics.fillStyle(0x031f4c, 1);
+		this.graphics.strokeRect(2, 150, 90, 100);
+        this.graphics.fillRect(2, 150, 90, 100);
+        this.graphics.strokeRect(95, 150, 90, 100);
+        this.graphics.fillRect(95, 150, 90, 100);
+        this.graphics.strokeRect(188, 150, 130, 100);
+        this.graphics.fillRect(188, 150, 130, 100);
+	}
+});
+
 var WorldScene = new Phaser.Class({
 
 	Extends: Phaser.Scene,
@@ -51,8 +94,8 @@ var WorldScene = new Phaser.Class({
 		
 		var tiles = map.addTilesetImage('spritesheet', 'tiles');
 
-		var grass = map.createStaticLayer('Grass', tiles, 0, 0);
-        var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
+		var grass = map.createLayer('Grass', tiles, 0, 0);
+        var obstacles = map.createLayer('Obstacles', tiles, 0, 0);
         obstacles.setCollisionByExclusion([-1]);
 
 		// Create player character
@@ -151,11 +194,12 @@ var WorldScene = new Phaser.Class({
 
 	onMeetEnemy: function(player, zone) {
 		// Move the zone to another randomised location
-		zone.x = Phaser.Math.RND.between(0, this.physics.worlds.bounds.width);
-		zone.y = Phaser.Math.RND.between(0, this.physics.worlds.bounds.height);
+		zone.x = Phaser.Math.RND.between(0, this.physics.world.bounds.width);
+		zone.y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
 
 		// Start the battle
 		this.cameras.main.shake(300);
+		this.scene.switch('BattleScene');
 	}
 });
 
@@ -175,7 +219,9 @@ var config = {
 	},
 	scene: [
 		BootScene,
-		WorldScene
+		WorldScene,
+		BattleScene,
+		UIScene
 	]
 };
 var game = new Phaser.Game(config);
